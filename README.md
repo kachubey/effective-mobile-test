@@ -2,7 +2,7 @@
 
 Проект поднимает два сервиса:
 
-- `back` — Python HTTP server;
+- `backend` — Python HTTP server;
 - `nginx` — reverse proxy и единственная внешняя точка входа.
 
 Используются:
