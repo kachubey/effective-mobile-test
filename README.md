@@ -3,7 +3,7 @@
 Проект поднимает два сервиса:
 
 - `backend` — Python HTTP server;
-- `nginx` — reverse proxy и единственная внешняя точка входа.
+- `nginx` — reverse proxy.
 
 Используются:
 - Python 3
@@ -11,7 +11,7 @@
 - Docker
 - Docker Compose
 
-Backend не публикуется наружу напрямую и доступен только внутри Docker Compose network.
+Backend не публикуется наружу напрямую и доступен только внутри Docker.
 
 
 ## Project structure
@@ -36,16 +36,16 @@ Client
   |
   | http://localhost
   v
-Nginx container
+Nginx
   |
   | proxy_pass http://back:8080
   v
-Python backend container
+Python backend
 ```
 
-Nginx принимает входящие HTTP-запросы на `80` порту и проксирует их во внутренний сервис `back` на порт `8080`.
+Nginx принимает входящие HTTP-запросы на `80` порту и проксирует их во внутренний сервис `backend` на порт `8080`.
 
-Внешний доступ к backend-контейнеру не открыт. Это сделано намеренно: клиент взаимодействует только с reverse proxy, а backend остаётся внутренним сервисом.
+Внешний доступ к backend-контейнеру закрыт. Это сделано намеренно: клиент взаимодействует только с reverse proxy.
 
 ## Implementation details
 
@@ -59,7 +59,7 @@ Backend реализован как простой HTTP-сервер на Python
 0.0.0.0:8080
 ```
 
-Использование `0.0.0.0` необходимо для корректной работы внутри контейнера: сервис должен принимать подключения не только с loopback-интерфейса контейнера, но и из Docker network.
+Использование `0.0.0.0` необходимо для корректной работы внутри контейнера: сервис должен принимать подключения не только с loopback-интерфейса контейнера, но и из Docker.
 
 Ожидаемый ответ на корневой маршрут:
 
@@ -71,7 +71,7 @@ Hello from Effective Mobile!
 
 Backend собирается из собственного `Dockerfile`.
 
-Образ содержит только необходимые файлы приложения. Лишние локальные артефакты исключены через `.dockerignore`.
+Образ содержит только необходимые файлы приложения. Лишние исключены через `.dockerignore`.
 
 ### Nginx
 
@@ -86,14 +86,14 @@ nginx/default.conf
 Основной upstream указывается через имя сервиса Docker Compose:
 
 ```nginx
-proxy_pass http://back:8080;
+proxy_pass http://backend:8080;
 ```
 
 `backend` — это DNS-имя сервиса внутри Docker Compose network. Использование `localhost` здесь было бы некорректным, потому что внутри контейнера Nginx `localhost` указывает на сам Nginx-контейнер.
 
 ### Docker Compose
 
-`docker-compose.yml` описывает два сервиса:
+`docker-compose.yml:
 
 - `backend` собирается из директории `./back`;
 - `nginx` использует официальный образ `nginx:alpine`;
@@ -210,12 +210,7 @@ nginx/default.conf
 docker-compose.yml
 .gitignore
 README.md
-```
 
-Docker image не хранится в репозитории, так как он воспроизводимо собирается из `Dockerfile` командой:
-
-```bash
-docker compose up --build
 ```
 
 ## Quick check before review
